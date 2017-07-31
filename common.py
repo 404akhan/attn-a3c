@@ -32,8 +32,13 @@ def f(player, func, attn_net_play, verbose=False):
         if verbose:
             print(act)
                 
-        ### my code        
-        state_arr = [np.expand_dims(color.rgb2gray(s[:, :, 3*i:3*(i+1)]), axis=2) for i in range(4)]
+        ### my code
+        state_arr = []        
+        for i in range(4):
+            gray_s = s[:, :, 3*i:3*(i+1)]
+            gray_s = color.rgb2gray(gray_s)
+            gray_s = np.expand_dims(gray_s, axis=2) 
+            state_arr.append(gray_s)
         state = np.concatenate(state_arr, axis=2)
 
         # state | 84 x 84 x 4
