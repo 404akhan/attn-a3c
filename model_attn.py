@@ -17,6 +17,7 @@ class Attn(nn.Module):
 
     def __init__(self, action_size, num_heads, batch_size, lr, game_name):
         super(Attn, self).__init__()
+        self.action_size = action_size
         self.num_heads = num_heads
         self.batch_size = batch_size
         self.lr = lr
@@ -38,7 +39,7 @@ class Attn(nn.Module):
 
         self.f_fc1 = nn.Linear(26 * self.num_heads, 256)
         self.f_fc2 = nn.Linear(256, 256)
-        self.f_fc3 = nn.Linear(256, action_size)
+        self.f_fc3 = nn.Linear(256, self.action_size)
         
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
@@ -58,7 +59,7 @@ class Attn(nn.Module):
             print('directory {} is created'.format(m_dir))
 
         print('cuda exist', self.cuda_exist)
-        print('game {}, num of heads {}'.format(self.game_name, self.num_heads))
+        print('game {}, num of heads {}, action size {}'.format(self.game_name, self.num_heads, self.action_size))
 
 
     def cvt_coord(self, i):

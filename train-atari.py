@@ -243,6 +243,7 @@ if __name__ == '__main__':
                         choices=['play', 'eval', 'train', 'gen_submit'], default='train')
     parser.add_argument('--output', help='output directory for submission', default='output_dir')
     parser.add_argument('--episode', help='number of episode to eval', default=100, type=int)
+    parser.add_argument('--num_heads', help='num of heads in attention model', default=4, type=int)
     args = parser.parse_args()
 
     ENV_NAME = args.env
@@ -261,7 +262,7 @@ if __name__ == '__main__':
             input_names=['state'],
             output_names=['policy'])
         if args.task == 'play':
-            play_model(cfg, get_player(viz=None), args.env)
+            play_model(cfg, get_player(viz=None), args.env, args.num_heads)
         elif args.task == 'eval':
             eval_model_multithread(cfg, args.episode, get_player)
         elif args.task == 'gen_submit':
