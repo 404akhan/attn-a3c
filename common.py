@@ -33,18 +33,24 @@ def f(player, func, attn_net_play, verbose=False):
             print(act)
                 
         ### my code
+        append_bool = True
         state_arr = []        
         for i in range(4):
             gray_s = s[:, :, 3*i:3*(i+1)]
             gray_s = color.rgb2gray(gray_s)
             gray_s = np.expand_dims(gray_s, axis=2) 
             state_arr.append(gray_s)
+
+            if np.sum(gray_s) == 0: 
+                append_bool = False
         state = np.concatenate(state_arr, axis=2)
 
         # state | 84 x 84 x 4
         # act | int
-        f.replay_memory.append(f.Transition(state, act))
-        if len(f.replay_memory) > f.upd_init_size and not f.visualize: # train
+        if append_bool:
+            f.replay_memory.append(f.Transition(state, act))
+
+        if len(f.replay_memory) > f.upd_init_size and not f.visualize and append_bool: # train
             f.counter += 1
             samples = random.sample(f.replay_memory, f.batch_size)
             states_batch, action_batch = map(np.array, zip(*samples))
@@ -56,10 +62,10 @@ def f(player, func, attn_net_play, verbose=False):
                 f.accuracy_arr = []
                 if f.counter % 5000 == 0: f.attn_net.save_model(f.counter)
 
-        if attn_net_play and not f.visualize: # play
+        if attn_net_play and not f.visualize and append_bool: # play
             act = f.attn_net.action_(state)
 
-        if f.visualize:
+        if f.visualize and append_bool:
             f.counter += 1
             last_vis = f.attn_net.visualize_(np.expand_dims(state, axis=0)) 
             if last_vis: sys.exit()
