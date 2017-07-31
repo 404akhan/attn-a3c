@@ -15,7 +15,7 @@ def selu(x):
 
 class Attn(nn.Module):
 
-    def __init__(self, num_heads, batch_size, lr, game_name='default'):
+    def __init__(self, action_size, num_heads, batch_size, lr, game_name):
         super(Attn, self).__init__()
         self.num_heads = num_heads
         self.batch_size = batch_size
@@ -38,7 +38,7 @@ class Attn(nn.Module):
 
         self.f_fc1 = nn.Linear(26 * self.num_heads, 256)
         self.f_fc2 = nn.Linear(256, 256)
-        self.f_fc3 = nn.Linear(256, 7)
+        self.f_fc3 = nn.Linear(256, action_size)
         
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
@@ -52,19 +52,14 @@ class Attn(nn.Module):
             np_coord_tensor[:,i,:] = np.array(self.cvt_coord(i))
         self.coord_tensor.data.copy_(torch.from_numpy(np_coord_tensor))
 
-        print('cuda exist', self.cuda_exist)
-        print('game {}, num of heads {}'.format(self.game_name, self.num_heads))
-
-
-    def set_game_name(self, game_name):
-        self.game_name = game_name
-        print('game name is', self.game_name)
-
         m_dir = 'model-{}-{}heads'.format(self.game_name, self.num_heads)
         if not os.path.exists(m_dir):
             os.makedirs(m_dir)
             print('directory {} is created'.format(m_dir))
-        
+
+        print('cuda exist', self.cuda_exist)
+        print('game {}, num of heads {}'.format(self.game_name, self.num_heads))
+
 
     def cvt_coord(self, i):
         return [(i/6-2.5)/2.5, (i%6-2.5)/2.5]

@@ -64,13 +64,14 @@ replay_memory_size = 100 * 1000
 f.replay_memory = deque([], replay_memory_size)
 f.upd_init_size = 10 * 1000
 f.batch_size = 16
-f.attn_net = Attn(num_heads=4, batch_size=f.batch_size, lr=1e-3)
-if f.attn_net.cuda_exist:
-    f.attn_net.cuda()
 ### end
 
 def play_model(cfg, player, game_name):
-    f.attn_net.set_game_name(game_name)
+    action_size = player.get_action_space().num
+    f.attn_net = Attn(action_size=action_size, num_heads=4, batch_size=f.batch_size, lr=1e-3, game_name=game_name)
+    if f.attn_net.cuda_exist:
+        f.attn_net.cuda()
+
     predfunc = OfflinePredictor(cfg)
     counter_games = 0
     
