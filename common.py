@@ -79,9 +79,9 @@ f.counter = 0
 f.accuracy_arr = []
 
 f.Transition = namedtuple("Transition", ["state", "action"])
-replay_memory_size = 50 * 1000
+replay_memory_size = 10 * 1000
 f.replay_memory = deque([], replay_memory_size)
-f.upd_init_size = 5 * 1000
+f.upd_init_size = 1 * 1000
 f.batch_size = 16
 ### end
 
