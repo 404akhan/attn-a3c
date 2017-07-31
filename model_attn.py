@@ -38,7 +38,7 @@ class Attn(nn.Module):
 
         self.f_fc1 = nn.Linear(26 * self.num_heads, 256)
         self.f_fc2 = nn.Linear(256, 256)
-        self.f_fc3 = nn.Linear(256, 6)
+        self.f_fc3 = nn.Linear(256, 7)
         
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
@@ -55,7 +55,7 @@ class Attn(nn.Module):
         m_dir = 'model-{}-{}heads'.format(self.game_name, self.num_heads)
         if not os.path.exists(m_dir):
             os.makedirs(m_dir)
-            
+
         print('cuda exist', self.cuda_exist)
         print('game {}, num of heads {}'.format(self.game_name, self.num_heads))
 
