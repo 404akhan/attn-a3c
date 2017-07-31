@@ -52,10 +52,6 @@ class Attn(nn.Module):
             np_coord_tensor[:,i,:] = np.array(self.cvt_coord(i))
         self.coord_tensor.data.copy_(torch.from_numpy(np_coord_tensor))
 
-        m_dir = 'model-{}-{}heads'.format(self.game_name, self.num_heads)
-        if not os.path.exists(m_dir):
-            os.makedirs(m_dir)
-
         print('cuda exist', self.cuda_exist)
         print('game {}, num of heads {}'.format(self.game_name, self.num_heads))
 
@@ -63,6 +59,11 @@ class Attn(nn.Module):
     def set_game_name(self, game_name):
         self.game_name = game_name
         print('game name is', self.game_name)
+
+        m_dir = 'model-{}-{}heads'.format(self.game_name, self.num_heads)
+        if not os.path.exists(m_dir):
+            os.makedirs(m_dir)
+            print('{} created'.format(m_dir))
         
 
     def cvt_coord(self, i):
