@@ -63,7 +63,7 @@ class Attn(nn.Module):
         m_dir = 'model-{}-{}heads'.format(self.game_name, self.num_heads)
         if not os.path.exists(m_dir):
             os.makedirs(m_dir)
-            print('{} created'.format(m_dir))
+            print('directory {} is created'.format(m_dir))
         
 
     def cvt_coord(self, i):
@@ -159,3 +159,4 @@ class Attn(nn.Module):
     def save_model(self, counter):
         model_dir = 'model-{}-{}heads/counter_{}.pth'.format(self.game_name, self.num_heads, counter)
         torch.save(self.state_dict(), model_dir)
+        print('model saved')

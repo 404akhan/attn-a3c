@@ -47,7 +47,7 @@ def f(player, func, attn_net_play, verbose=False):
             if f.counter % 100 == 0:
                 print('update %d, accuracy %.2f%%' % (f.counter, np.mean(f.accuracy_arr)))
                 f.accuracy_arr = []
-                if f.counter % 1000 == 0: f.attn_net.save_model(f.counter)
+                if f.counter % 5000 == 0: f.attn_net.save_model(f.counter)
 
         if attn_net_play: # play
             act = f.attn_net.action_(state)
