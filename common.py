@@ -19,6 +19,8 @@ from tensorpack.utils.stats import *
 ### my code
 from model_attn import *
 from collections import deque, namedtuple
+import torch
+import sys
 ### end
 
 def f(player, func, attn_net_play, verbose=False):
@@ -37,7 +39,7 @@ def f(player, func, attn_net_play, verbose=False):
         # state | 84 x 84 x 4
         # act | int
         f.replay_memory.append(f.Transition(state, act))
-        if len(f.replay_memory) > f.upd_init_size: # train
+        if len(f.replay_memory) > f.upd_init_size and not f.visualize: # train
             f.counter += 1
             samples = random.sample(f.replay_memory, f.batch_size)
             states_batch, action_batch = map(np.array, zip(*samples))
@@ -49,8 +51,14 @@ def f(player, func, attn_net_play, verbose=False):
                 f.accuracy_arr = []
                 if f.counter % 5000 == 0: f.attn_net.save_model(f.counter)
 
-        if attn_net_play: # play
+        if attn_net_play and not f.visualize: # play
             act = f.attn_net.action_(state)
+
+        if f.visualize:
+            f.counter += 1
+            last_vis = f.attn_net.visualize_(np.expand_dims(state, axis=0)) 
+            if last_vis: sys.exit()
+
         ### end
         return act
     return np.mean(player.play_one_episode(g))
@@ -66,11 +74,18 @@ f.upd_init_size = 5 * 1000
 f.batch_size = 16
 ### end
 
-def play_model(cfg, player, game_name, num_heads):
+def play_model(cfg, player, game_name, num_heads, vis_load_dir=None):
     action_size = player.get_action_space().num
     f.attn_net = Attn(action_size=action_size, num_heads=num_heads, batch_size=f.batch_size, lr=1e-3, game_name=game_name)
     if f.attn_net.cuda_exist:
         f.attn_net.cuda()
+
+    if vis_load_dir is not None:
+        print('==> loading checkpoint {}'.format(vis_load_dir))
+        checkpoint = torch.load(vis_load_dir, map_location=lambda storage, loc: storage)
+        f.attn_net.load_state_dict(checkpoint)
+        print('==> loaded checkpoint {}'.format(vis_load_dir))
+    f.visualize = vis_load_dir is not None
 
     predfunc = OfflinePredictor(cfg)
     counter_games = 0

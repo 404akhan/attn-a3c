@@ -5,6 +5,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 import os
+import skimage.transform
+import matplotlib.pyplot as plt 
 
 
 def selu(x):
@@ -60,6 +62,10 @@ class Attn(nn.Module):
 
         print('cuda exist', self.cuda_exist)
         print('game {}, num of heads {}, action size {}'.format(self.game_name, self.num_heads, self.action_size))
+
+        # variables for visualization
+        self.plot_num = 0
+        self.total_plot = 100
 
 
     def cvt_coord(self, i):
@@ -156,3 +162,90 @@ class Attn(nn.Module):
         model_dir = 'model-{}-{}heads/counter_{}.pth'.format(self.game_name, self.num_heads, counter)
         torch.save(self.state_dict(), model_dir)
         print('model saved')
+
+
+    def visual_pass(self, img):
+        """convolution"""
+        x = self.conv1(img)
+        x = F.relu(x)
+        x = self.batchNorm1(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = self.batchNorm2(x)
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = self.batchNorm3(x)
+        x = self.conv4(x)
+        x = F.relu(x)
+        x = self.batchNorm4(x)
+
+        """g"""
+        mb = x.size()[0]
+        n_channels = x.size()[1]
+        d = x.size()[2]
+
+        x_flat = x.view(mb,n_channels,d*d).permute(0,2,1)
+
+        x_flat = torch.cat([x_flat, self.coord_tensor[:mb]], dim=2)
+
+        x_flat2 = x_flat.view(mb*d*d, 26)
+
+        ### plot probs
+        prob_summ = np.zeros((d, d))
+
+        for i in range(self.num_heads):
+            scores = self.w3[i](selu(self.w2[i](selu(self.w1[i](x_flat2))))) # bsize*36 x 1
+            scores = scores.squeeze(1).view(mb, d * d) # bsize x 36
+
+            probs = F.softmax(scores).unsqueeze(1) # bsize x 1 x 36
+            obj = torch.bmm(probs, x_flat).squeeze(1) # bsize x 26
+
+            ### plot probs
+            prob = probs[0][0].view(d, d).data.numpy()
+            prob_summ += prob
+
+        prob_summ /= self.num_heads
+
+        img_plt = img[0].permute(1, 2, 0).data.numpy()
+        img_plt = np.mean(img_plt, axis=2, keepdims=False) # average four frames
+        prob_vis = skimage.transform.pyramid_expand(prob_summ, upscale=14)
+
+        # plot four sublots
+        f, (axx_arr) = plt.subplots(2, 2)
+        axx_arr[0, 0].imshow(img_plt, cmap='gray')
+        axx_arr[0, 0].set_title('original')
+
+        axx_arr[0, 1].set_title('original + mask')
+        axx_arr[0, 1].imshow(img_plt, cmap='gray')
+        axx_arr[0, 1].imshow(prob_vis, alpha=0.6, cmap='gray')
+
+        axx_arr[1, 0].set_title('mask')  
+        axx_arr[1, 0].imshow(prob_vis, cmap='gray')
+
+        axx_arr[1, 1].set_title('raw probabilities 6x6')  
+        axx_arr[1, 1].imshow(prob_summ, cmap='gray')
+        plt.tight_layout()
+
+        visualize_dir = 'visualize-{}-{}heads'.format(self.game_name, self.num_heads)
+        if not os.path.exists(visualize_dir):
+            os.makedirs(visualize_dir)
+        f.savefig(visualize_dir + '/attention'+str(self.plot_num))
+        plt.close()
+        ### end plotting
+        
+        print('result %d / %d' % (self.plot_num, self.total_plot))
+        self.plot_num += 1
+
+        return self.plot_num == self.total_plot
+    
+    def visualize_(self, input_img):
+        # input_img     | N, H, W, C
+        # label         | N
+        input_img = input_img.transpose(0, 3, 1, 2) / 255.
+        input_img = torch.FloatTensor(input_img)
+        if self.cuda_exist:
+            input_img = input_img.cuda()
+        input_img = Variable(input_img)
+
+        last_vis = self.visual_pass(input_img)
+        return last_vis

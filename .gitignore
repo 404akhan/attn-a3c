@@ -8,6 +8,7 @@ tensorpack/user_ops/obj
 *.meta
 *.log*
 model-*
+visualize-*
 *.caffemodel
 *.png
 *.jpg
@@ -20,6 +21,7 @@ checkpoint
 snippet
 examples/private
 TODO.md
+rest.py
 
 *.gz
 

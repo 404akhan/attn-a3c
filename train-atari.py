@@ -238,6 +238,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', help='comma separated list of GPU(s) to use.')
     parser.add_argument('--load', help='load model')
+    parser.add_argument('--vis_load_dir', help='loads pretrained attention model for visualiation')
     parser.add_argument('--env', help='env', required=True)
     parser.add_argument('--task', help='task to perform',
                         choices=['play', 'eval', 'train', 'gen_submit'], default='train')
@@ -262,7 +263,7 @@ if __name__ == '__main__':
             input_names=['state'],
             output_names=['policy'])
         if args.task == 'play':
-            play_model(cfg, get_player(viz=None), args.env, args.num_heads)
+            play_model(cfg, get_player(viz=None), args.env, args.num_heads, args.vis_load_dir)
         elif args.task == 'eval':
             eval_model_multithread(cfg, args.episode, get_player)
         elif args.task == 'gen_submit':
